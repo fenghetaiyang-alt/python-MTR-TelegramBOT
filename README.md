@@ -1,7 +1,7 @@
 # python-MTR-TelegramBOT
 ###  1 安装了 Python3 的 HTTP 请求库 requests（用于发 TG 消息）：bash# 安装 Python3 和 requests 库
 dnf install python3 -y  
-pip3 install requests  
+pip3 install requests
 
 #### 2 安装 Python 虚拟环境的核心组件（RockyLinux 默认可能未包含）
 dnf install python3-pip python3-virtualenv -y  
