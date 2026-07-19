@@ -32,9 +32,12 @@ nohup /root/mtr_tg_monitor.py >/dev/null 2>&1 &
 ps -ef | grep mtr_tg_monitor.py | grep -v grep  
 现在你的监控服务已经缩进了一个绝对安全的“防火墙沙箱”里，外部其他项目的脚本怎么折腾，都绝对伤不到它一根汗毛。  
 
-####  终极 Systemd 部署步骤
-请在你的 RockyLinux 终端直接执行以下三步，一气呵成完成工业级收网：1. 创建 Systemd 服务配置文件bashvi /etc/systemd/system/mtr-monitor.service
-请谨慎使用此类代码。2. 粘贴以下完美对齐、带安全资源限制的完全体配置：ini[Unit]
+#### 5 终极 Systemd 部署步骤
+请在你的 RockyLinux 终端直接执行以下三步，一气呵成完成工业级收网：  
+  1. 创建 Systemd 服务配置文件
+  vi /etc/systemd/system/mtr-monitor.service  
+  2. 粘贴以下完美对齐、带安全资源限制的完全体配置：
+[Unit]
 Description=High-Precision Low-Overhead MTR Telegram Monitor Service
 After=network.target network-online.target
 Wants=network-online.target
@@ -69,7 +72,10 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-请谨慎使用此类代码。保存并退出 (:wq)。3. 清理旧 nohup 进程，并激活开机自启bash# 1. 强行终止之前通过 nohup 挂在后台的老进程
+
+
+
+保存并退出 (:wq)。3. 清理旧 nohup 进程，并激活开机自启bash# 1. 强行终止之前通过 nohup 挂在后台的老进程
 pkill -f mtr_tg_monitor.py
 
 # 2. 重新加载 Systemd 配置引擎
