@@ -37,6 +37,7 @@ ps -ef | grep mtr_tg_monitor.py | grep -v grep
   1. 创建 Systemd 服务配置文件
   vi /etc/systemd/system/mtr-monitor.service  
   2. 粘贴以下完美对齐、带安全资源限制的完全体配置：
+
 [Unit]
 Description=High-Precision Low-Overhead MTR Telegram Monitor Service
 After=network.target network-online.target
@@ -44,29 +45,20 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-# 🟢 精准指向虚拟环境中的 Python 解释器，无需执行 source 激活
+# 🟢 路径死死锁定在 /root 目录下，直截了当
 ExecStart=/root/mtr_env/bin/python3 /root/mtr_tg_monitor.py
 WorkingDirectory=/root
 
-# 🔄 自动重启自愈机制
+# 🔄 自动重启自愈机制（5秒自动拉起）
 Restart=always
 RestartSec=5s
 TimeoutStopSec=5s
 
-# 📊 资源限制（防止内存泄漏撑爆宿主机）
+# 📊 仅保留资源限制（防止极端情况内存溢出）
 MemoryAccounting=true
 MemoryMax=64M
-CPUAccounting=true
-CPUSchedulingPolicy=other
 
-# 🛡️ 工业级系统安全沙箱加固
-ProtectSystem=full
-ProtectHome=true
-PrivateTmp=true
-NoNewPrivileges=true
-CapabilityBoundingSet=CAP_NET_RAW
-
-# 📝 日志管理（交由 Systemd 统一接管，防 nohup.out 撑爆磁盘）
+# 📝 日志接管
 StandardOutput=journal
 StandardError=journal
 
