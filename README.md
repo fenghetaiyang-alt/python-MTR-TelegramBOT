@@ -13,3 +13,8 @@ source /root/mtr_env/bin/activate
 ##### 5 在隔离环境内安装 requests 依赖包
 pip install --upgrade pip  
 pip install requests  
+
+#### 第二步：修正 Python 脚本
+为了确保脚本能 100% 自动找到我们刚才建好的虚拟环境，我们需要将脚本第一行的 #!/usr/bin/env python3（寻找系统默认 Python）强制修改为寻找我们虚拟环境内部的专用 Python 解释器。
+打开或创建 Python 脚本：
+vi /root/mtr_tg_monitor.py
