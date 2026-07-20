@@ -45,9 +45,10 @@ chmod +x /root/mtr_tg_monitor.py
 
 🏁 最终复核命令你可以运行下面这行命令，如果看到进程正常亮起，且它调用的确实是 /root/mtr_env/bin/python3，说明虚拟环境沙箱级隔离已经彻底大功告成！  
 ps -ef | grep mtr_tg_monitor.py | grep -v grep  
+
 现在你的监控服务已经缩进了一个绝对安全的“防火墙沙箱”里，外部其他项目的脚本怎么折腾，都绝对伤不到它一根汗毛。  
 
-#### 5 终极 Systemd 部署步骤
+#### 第四步：终极 Systemd 部署步骤
 请在你的 RockyLinux 终端直接执行以下三步，一气呵成完成工业级收网：  
   1. 创建 Systemd 服务配置文件  
   ```text
@@ -86,13 +87,12 @@ StandardError=journal
 [Install]
 WantedBy=multi-user.target
 ```
-**
----**
+
+---
 
 
+保存并退出 (:wq)。  
 
-
-保存并退出 (:wq)。
 3. 清理旧 nohup 进程，并激活开机自启bash# 
   1. 强行终止之前通过 nohup 挂在后台的老进程
 pkill -f mtr_tg_monitor.py
@@ -103,15 +103,25 @@ systemctl daemon-reload
 ```
 
   3. 开启开机自动启动服务
+```text
 systemctl enable mtr-monitor.service
+```
 
   4. 立刻原地全速启动服务
+```text
 systemctl start mtr-monitor.service
+```
 
 🏁 运维常用指令小贴士现在你的监控服务已经完全被 RockyLinux 操作系统当成一个标准系统服务来养着了，以后排查只需要用这两行标准的命令：查看服务运行状态、实时内存和 CPU 占用：
+```text
 systemctl status mtr-monitor.service
+```
 (💡 你会看到清晰的 Memory: X.XM (limit: 64.0M)，看着它在极低的能耗下稳定奔跑。)  
 
 查看这个 Python 脚本产生的系统历史日志：
+```text
 journalctl -u mtr-monitor.service -n 50 --no-pager
+```
+
+
 
