@@ -123,13 +123,13 @@ systemctl status mtr-monitor.service
 journalctl -u mtr-monitor.service -n 50 --no-pager
 ```
 
-### 直接清空该目录下所有日志的命令：
+### 清除日志方法① 直接清空该目录下所有日志的命令：
 ```text
 # 哪怕你把整个 /var/log/mtr_flash 文件夹全部删得一干二净，脚本在下一次需要写入日志的时候，也会自动在后台重新把这个文件夹和对应的 .log 文件创建出来，完全不影响监控运行
 rm -f /var/log/mtr_flash/*
 ```
 
-### 在线清空文件（保留文件，但把大小归零）
+### 清除日志方法② 在线清空文件（保留文件，但把大小归零）
 ```text
 # 如果你只想清空内容，不想删掉文件，可以用 > 符号。这种方法不需要重启任何服务，瞬间释放硬盘空间：
 > /var/log/mtr_flash/bro_hk.log
@@ -137,7 +137,7 @@ rm -f /var/log/mtr_flash/*
 > /var/log/mtr_flash/xty_hk.log
 ```
 
-### 配置 Linux 自带的 logrotate（一劳永逸，最推荐 👍）
+### 清除日志方法③ 配置 Linux 自带的 logrotate（一劳永逸，最推荐 👍）
 ```bash
 # 如果你希望系统自动管理这些日志（比如：每天自动切割一次，日志文件超过 10MB 自动打包压缩，只保留最近 7 天的日志，更古老的自动删除），可以利用 Linux 自带的日志轮转工具。你只需要在终端执行以下这条命令，把规则写进系统配置里，此后你这辈子都不用再手动去删这个目录下的日志了：
 cat << 'EOF' > /etc/logrotate.d/mtr_flash
