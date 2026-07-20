@@ -35,9 +35,10 @@ ps -ef | grep mtr_tg_monitor.py | grep -v grep
 #### 5 终极 Systemd 部署步骤
 请在你的 RockyLinux 终端直接执行以下三步，一气呵成完成工业级收网：  
   1. 创建 Systemd 服务配置文件  
-  vi /etc/systemd/system/mtr-monitor.service    
-  2. 粘贴以下完美对齐、带安全资源限制的完全体配置：
-'''shell
+  vi /etc/systemd/system/mtr-monitor.service
+
+  3. 粘贴以下完美对齐、带安全资源限制的完全体配置：  
+
 [Unit]
 Description=High-Precision Low-Overhead MTR Telegram Monitor Service
 After=network.target network-online.target
