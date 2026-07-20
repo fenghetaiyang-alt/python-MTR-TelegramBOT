@@ -39,6 +39,10 @@ ps -ef | grep mtr_tg_monitor.py | grep -v grep
 
   3. 粘贴以下完美对齐、带安全资源限制的完全体配置：  
 
+
+```ini[Unit]Description=High-Precision Low-Overhead MTR Telegram Monitor ServiceAfter=network.target network-online.targetWants=network-online.target[Service]Type=simple🟢 路径死死锁定在 /root 目录下，直截了当ExecStart=/root/mtr_env/bin/python3 /root/mtr_tg_monitor.pyWorkingDirectory=/root🔄 自动重启自愈机制（5秒自动拉起）Restart=alwaysRestartSec=5sTimeoutStopSec=5s📊 仅保留资源限制（防止极端情况内存溢出）MemoryAccounting=trueMemoryMax=128M📝 日志接管StandardOutput=journalStandardError=journal[Install]WantedBy=multi-user.target
+
+
 ···bash
 [Unit]
 Description=High-Precision Low-Overhead MTR Telegram Monitor Service
@@ -67,7 +71,7 @@ StandardError=journal
 [Install]
 WantedBy=multi-user.target
 
-</code></pre>
+
 
 
 
