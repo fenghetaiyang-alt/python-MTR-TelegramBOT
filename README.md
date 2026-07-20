@@ -39,6 +39,7 @@ ps -ef | grep mtr_tg_monitor.py | grep -v grep
 
   3. 粘贴以下完美对齐、带安全资源限制的完全体配置：  
 
+···bash
 [Unit]
 Description=High-Precision Low-Overhead MTR Telegram Monitor Service
 After=network.target network-online.target
