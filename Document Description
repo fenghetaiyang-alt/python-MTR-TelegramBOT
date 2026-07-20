@@ -1,0 +1,45 @@
+# 抓取网卡上所有目的地或源地址为 8.8.4.4 的 ICMP / UDP 探测包
+tcpdump -i any -nn host 8.8.4.4
+
+# 在linux上测试telegram机器人发送信息
+curl -s -X POST "https://api.telegram.org/bot8990602991:AAEVQPpf50WqsPgWKXM8JhyeN9uAxWd5k10/sendMessage" -d "chat_id=-5454849963" -d "text=分段完好无损测试成功"
+
+# 显示服务的日志信息
+journalctl -u mtr-monitor.service -n 100 --no-pager
+
+# 重启服务
+systemctl restart mtr-monitor.service
+
+# 实时动态盯着全部日志
+tail -f /var/log/mtr_flash/*.log
+
+# 实时动态盯着BRO日志
+tail -f /var/log/mtr_flash/bro_hk.log
+
+# 查看最近 50 行的报警历史
+tail -n 50 /var/log/mtr_flash/bro_hk.log
+
+# 用极简视图查看所有发生过的故障时间点
+grep -E "链路故障报警|受影响链路|探测时间" /var/log/mtr_flash/*.log
+
+# less 全量翻页审查 （按 q 退出）
+less /var/log/mtr_flash/bro_hk.log
+
+# 报警信息所在文件夹
+ ll /var/log/mtr_flash
+
+# 报警信息日志优化
+# ===============================================
+cat << 'EOF' > /etc/logrotate.d/mtr_flash
+/var/log/mtr_flash/*.log {
+    daily
+    rotate 7
+    missingok
+    notifempty
+    compress
+    size 10M
+    copytruncate
+}
+EOF
+# ==============================================
+
