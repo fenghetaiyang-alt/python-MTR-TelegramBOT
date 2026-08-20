@@ -11,7 +11,7 @@ import threading
 import requests
 
 # ==================== 🛠️ 核心配置区域 ====================
-TG_TOKEN = "8990602991:AAEVQPpf50WqsPgWKXM8JhyeN9uAxWd5k10"
+TG_TOKEN = "-----------"
 CHAT_ID = "-5454849963"
 TARGET = "8.8.4.4"
 
