@@ -17,7 +17,7 @@ import requests
 from concurrent.futures import ThreadPoolExecutor  # 🚀 引入线程池模块
 
 # ==================== 🛠️ 核心配置区域 ====================
-TG_TOKEN = "8990602991:AAHeNMxkCc4EPBcpVKaOJrXXc_QKvnh6hV4"
+TG_TOKEN = "-----------------------"
 CHAT_ID = "-5454849963"
 TARGET = "8.8.8.8"
 
@@ -59,9 +59,9 @@ def send_tg_msg(html_text):
     payload = {"chat_id": CHAT_ID, "parse_mode": "HTML", "text": html_text}
     
     urls = [
-        f"https://telegram.org{clean_token}/sendMessage",
-        f"https://tgproxy.cc{clean_token}/sendMessage",          
-        f"https://telegram-proxy.org{clean_token}/sendMessage" 
+        f"https://api.telegram.org/{clean_token}/sendMessage",
+        f"https://tgproxy.cc/{clean_token}/sendMessage",          
+        f"https://telegram-proxy.org/{clean_token}/sendMessage" 
     ]
     
     for url in urls:
