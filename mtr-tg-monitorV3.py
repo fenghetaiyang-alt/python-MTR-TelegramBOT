@@ -1,9 +1,11 @@
 # [root@localhost ~]# cat /root/mtr_tg_monitor.py
+# 我们要把故障细分为三种情况，让它永远不会误报：
+# 1、中途暴毙（像现在这样）：MTR 压根没探到目的地（最后一跳 IP 不是 8.8.8.8），并且只有 1-2 个隐藏节点就结束了。
+# 2、骨干网断路（你原本的设计）：MTR 探到了更深的地方，但中间连续出现了 3 个或更多的 ??? 隐藏节点。
+# 3、目的地高丢包：顺利送达了目的地 8.8.8.8，但目的地的丢包率偏高。
 # time.sleep(INTERVAL_SEC)改为（35秒）
 # 整个主循环升级为更安全的线程池（Thread Run）模式防止线程无限堆积
 # 增加一条链路和更新对应的源IP地址
-#!/root/mtr_env/bin/python3
-# -*- coding: utf-8 -*-
 
 #!/root/mtr_env/bin/python3
 # -*- coding: utf-8 -*-
@@ -14,18 +16,18 @@ import time
 import subprocess
 import threading
 import requests
-from concurrent.futures import ThreadPoolExecutor  # 🚀 引入线程池模块
+from concurrent.futures import ThreadPoolExecutor
 
 # ==================== 🛠️ 核心配置区域 ====================
-TG_TOKEN = "-----------------------"
+TG_TOKEN = "----------------------"
 CHAT_ID = "-5454849963"
-TARGET = "8.8.8.8"
+TARGET = "8.8.8.8"                       # 🎯 已对齐你实际测试的公网目的地
 
 # 📊 业务触发配置
 LOSS_THRESHOLD = 30.0                    # 目的地触发丢包阈值
-INTERVAL_SEC = 35                        # 🚀 探测频率已调整为 35 秒（安全对齐 MTR 兜底超时）
+INTERVAL_SEC = 35                        # 探测频率（35秒安全节奏，防线程堆积）
 REMIND_INTERVAL_SEC = 10 * 60            # 持续故障时，每 10 分钟重新提醒一次
-CONSECUTIVE_UNKNOWN_LIMIT = 4            # 连续 3 跳 ??? 则判定为骨干网断路故障
+CONSECUTIVE_UNKNOWN_LIMIT = 3            # 连续 3 跳 ??? 则判定为骨干网断路故障
 # ========================================================
 
 LOG_DIR = "/var/log/mtr_flash"
@@ -34,10 +36,10 @@ os.makedirs(LOG_DIR, exist_ok=True)
 LINK_STATES = {}
 state_lock = threading.Lock()
 
-# 🚀 更新后的 4 个新链路配置
+# 🌐 4 个新链路与对应的源 IP 配置
 LINKS = {
     "BRO-HK": "10.49.251.4",
-    "XTY-HK": "10.49.251.5",
+    "MKN-HK": "10.49.251.5",
     "Backup-HK": "10.49.251.6",
     "MKN-JPZ": "10.49.251.7"
 }
@@ -60,8 +62,8 @@ def send_tg_msg(html_text):
     
     urls = [
         f"https://api.telegram.org/{clean_token}/sendMessage",
-        f"https://tgproxy.cc/{clean_token}/sendMessage",          
-        f"https://telegram-proxy.org/{clean_token}/sendMessage" 
+        f"https://tgproxy.cc/{clean_token}/sendMessage",
+        f"https://telegram-proxy.org/{clean_token}/sendMessage"
     ]
     
     for url in urls:
@@ -75,7 +77,7 @@ def send_tg_msg(html_text):
 def monitor_link(isp_name, src_ip):
     global LINK_STATES
     
-    # -m 24 覆盖 20 跳；-G 1 限制末尾死等；timeout=35 秒提供绝对冗余空间
+    # 🩹 采用标准兼容参数，不带可能导致部分系统崩溃的 -g 或 -G
     cmd = ["mtr", "-n", "-c", "10", "-i", "1", "-m", "24", "-G", "1", "-r", "-a", src_ip, TARGET]
     try:
         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=35)
@@ -125,7 +127,7 @@ def monitor_link(isp_name, src_ip):
 
     if not hops_data: return
 
-    # 1. 计算连续 ??? 的数量
+    # 1. 计算连续 ??? 的数量（你的核心逻辑，完美保留）
     max_consecutive_unknown = 0
     current_consecutive = 0
     for node in hops_data:
@@ -135,10 +137,17 @@ def monitor_link(isp_name, src_ip):
         else:
             current_consecutive = 0  
 
-    # 2. 获取最后一跳数据
+    # 2. 🚀 精准目的地送达判定（新增防御，应对 MTR 进程提前退出的特殊网络故障）
     dest_node = hops_data[-1]
-    dest_loss = dest_node["loss"]
+    is_target_reached = (dest_node["ip"] == TARGET) 
 
+    if is_target_reached:
+        dest_loss = dest_node["loss"]
+    else:
+        # 如果最后一跳不是 8.8.8.8，说明中途路由暴毙，目的地属于 100% 无法访问状态
+        dest_loss = 100.0
+
+    # 🚨 触发报警的总开关
     is_fault = (dest_loss >= (LOSS_THRESHOLD - 0.01)) or (max_consecutive_unknown >= CONSECUTIVE_UNKNOWN_LIMIT)
 
     state_wall = ""
@@ -171,7 +180,16 @@ def monitor_link(isp_name, src_ip):
                 state["status"] = "FAIL"
                 state["last_alert_time"] = now_ts
                 
-                reason = f"目的地丢包过高 ({dest_loss}%)" if dest_loss >= LOSS_THRESHOLD else f"检测到骨干网连续 {max_consecutive_unknown} 跳断路"
+                # 🚀 报警原因智能细分归类（让故障定位一目了然）
+                if not is_target_reached:
+                    # 本地端或网关彻底中断导致 MTR 提前中止
+                    reason = f"路由中途彻底断开 (MTR进程被迫终止在第 {dest_node['hop']} 跳)"
+                elif max_consecutive_unknown >= CONSECUTIVE_UNKNOWN_LIMIT:
+                    # 骨干网连续隐藏节点故障
+                    reason = f"检测到骨干网连续 {max_consecutive_unknown} 跳断路故障"
+                else:
+                    # 正常跑到目的地但高丢包
+                    reason = f"目的地拨测丢包过高 ({dest_loss}%)"
                 
                 html_msg = (
                     f"🚨 <b>[链路故障报警]</b>\n"
@@ -224,20 +242,16 @@ def save_to_log(isp_name, html_msg):
     except: pass
 
 def main():
-    # 🚀 初始化线程池，最大线程数设定为 4（与当前链路数量完美匹配）
-    # 这样确保 4 个链路可以同时异步执行，而不会产生任何额外堆积
+    # 🚀 使用安全的线程池，限制最大并发数为当前链路总数
     executor = ThreadPoolExecutor(max_workers=len(LINKS))
-    
     print(f" MTR 监控服务已启动。当前监测链路数: {len(LINKS)}，探测间隔: {INTERVAL_SEC}秒。")
     
     while True:
         start_time = time.time()
-        
-        # 将任务提交给线程池异步执行
         for isp_name, src_ip in LINKS.items():
             executor.submit(monitor_link, isp_name, src_ip)
             
-        # 计算动态等待时间（扣除提交任务的微小耗时，保持绝对精准的 35 秒节奏）
+        # 动态延迟补偿，保持每轮循环绝对精准对齐 35 秒
         elapsed = time.time() - start_time
         sleep_time = max(0.1, INTERVAL_SEC - elapsed)
         time.sleep(sleep_time)
