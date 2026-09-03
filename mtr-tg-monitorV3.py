@@ -37,7 +37,7 @@ state_lock = threading.Lock()
 # 🚀 更新后的 4 个新链路配置
 LINKS = {
     "BRO-HK": "10.49.251.4",
-    "MKN-HK": "10.49.251.5",
+    "XTY-HK": "10.49.251.5",
     "Backup-HK": "10.49.251.6",
     "MKN-JPZ": "10.49.251.7"
 }
